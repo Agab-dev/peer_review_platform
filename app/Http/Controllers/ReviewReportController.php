@@ -14,7 +14,8 @@ class ReviewReportController extends Controller
 {
     public function __construct(
         private readonly AnonymizationService $anonymization
-    ) {}
+    ) {
+    }
 
     // ── POST /api/v1/research/{research}/reports ────────────────────
     public function store(Request $request, ResearchSubmission $research): JsonResponse
@@ -29,45 +30,47 @@ class ReviewReportController extends Controller
         }
 
         $data = $request->validate([
-            'summary'        => 'required|string',
-            'major_issues'   => 'required|string',
-            'minor_issues'   => 'nullable|string',
+            'summary' => 'required|string',
+            'major_issues' => 'required|string',
+            'minor_issues' => 'nullable|string',
             'recommendation' => 'required|in:accept,revisions_required,reject',
         ]);
 
         $report = ReviewReport::create([
-            'research_id'    => $research->research_id,
-            'reviewer_id'    => $user->user_id,
-            'summary'        => $data['summary'],
-            'major_issues'   => $data['major_issues'],
-            'minor_issues'   => $data['minor_issues'] ?? null,
+            'research_id' => $research->research_id,
+            'reviewer_id' => $user->user_id,
+            'summary' => $data['summary'],
+            'major_issues' => $data['major_issues'],
+            'minor_issues' => $data['minor_issues'] ?? null,
             'recommendation' => $data['recommendation'],
-            'submitted_at'   => now(),
+            'submitted_at' => now(),
         ]);
 
         // Auto-create Review Reports Forum thread (REQ-054)
         $discussion = ForumDiscussion::create([
-            'research_id'          => $research->research_id,
-            'discussion_type'      => 'review_report',
+            'research_id' => $research->research_id,
+            'discussion_type' => 'review_report',
             'referenced_report_id' => $report->report_id,
-            'title'                => 'Review Report — ' . $this->anonymization->resolveDisplayName(
-                $user, $research, $user
+            'title' => 'Review Report — ' . $this->anonymization->resolveDisplayName(
+                $user,
+                $research,
+                $user
             ),
-            'created_at'           => now(),
-            'created_by'           => $user->user_id,
+            'created_at' => now(),
+            'created_by' => $user->user_id,
         ]);
 
         return response()->json([
             'message' => 'Review report submitted.',
-            'data'    => [
-                'report_id'      => $report->report_id,
-                'research_id'    => $research->research_id,
-                'reviewer_id'    => $user->user_id,
+            'data' => [
+                'report_id' => $report->report_id,
+                'research_id' => $research->research_id,
+                'reviewer_id' => $user->user_id,
                 'recommendation' => $report->recommendation,
-                'submitted_at'   => $report->submitted_at,
-                'discussion'     => [
+                'submitted_at' => $report->submitted_at,
+                'discussion' => [
                     'discussion_id' => $discussion->discussion_id,
-                    'title'         => $discussion->title,
+                    'title' => $discussion->title,
                 ],
             ],
         ], 201);
@@ -79,7 +82,7 @@ class ReviewReportController extends Controller
         $viewer = JWTAuth::user();
 
         // Authors can only see reports after Interactive Phase begins (REQ-056)
-        if ($viewer->isAuthor() && !$research->isInteractive() && !$research->isAccepted()) {
+        if ($viewer->isAuthor() && !$research->isInteractive()) {
             return response()->json([
                 'message' => 'Forbidden. Review reports are not visible to authors until the Interactive Phase begins.',
             ], 403);
@@ -91,14 +94,14 @@ class ReviewReportController extends Controller
 
         $data = $reports->map(function ($report) use ($research, $viewer) {
             return [
-                'report_id'      => $report->report_id,
-                'reviewer'       => $this->anonymization->reviewerArray($report->reviewer, $research, $viewer),
-                'summary'        => $report->summary,
-                'major_issues'   => $report->major_issues,
-                'minor_issues'   => $report->minor_issues,
+                'report_id' => $report->report_id,
+                'reviewer' => $this->anonymization->reviewerArray($report->reviewer, $research, $viewer),
+                'summary' => $report->summary,
+                'major_issues' => $report->major_issues,
+                'minor_issues' => $report->minor_issues,
                 'recommendation' => $report->recommendation,
-                'submitted_at'   => $report->submitted_at,
-                'discussion_id'  => $report->forumDiscussion?->discussion_id,
+                'submitted_at' => $report->submitted_at,
+                'discussion_id' => $report->forumDiscussion?->discussion_id,
             ];
         });
 

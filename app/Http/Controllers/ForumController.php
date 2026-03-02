@@ -14,7 +14,8 @@ class ForumController extends Controller
 {
     public function __construct(
         private readonly AnonymizationService $anonymization
-    ) {}
+    ) {
+    }
 
     // ── GET /api/v1/research/{research}/forums/annotations ──────────
     public function listAnnotationDiscussions(Request $request, ResearchSubmission $research): JsonResponse
@@ -29,14 +30,14 @@ class ForumController extends Controller
 
         $query = ForumDiscussion::where('research_id', $research->research_id)
             ->where('discussion_type', 'annotation')
-            ->whereHas('annotation', fn ($q) => $q->where('document_id', $documentId))
-            ->with(['creator', 'annotation', 'replies' => fn ($q) => $q->whereNull('deleted_at')]);
+            ->whereHas('annotation', fn($q) => $q->where('document_id', $documentId))
+            ->with(['creator', 'annotation', 'replies' => fn($q) => $q->whereNull('deleted_at')]);
 
         $sort = $request->query('sort', 'chronological');
         if ($sort === 'document_order') {
             $query->join('annotations', 'forum_discussions.referenced_annotation_id', '=', 'annotations.annotation_id')
-                  ->orderBy('annotations.text_range_start')
-                  ->select('forum_discussions.*');
+                ->orderBy('annotations.text_range_start')
+                ->select('forum_discussions.*');
         } else {
             $query->orderBy('forum_discussions.created_at');
         }
@@ -46,15 +47,15 @@ class ForumController extends Controller
         $discussions->getCollection()->transform(function ($d) use ($research, $viewer) {
             return [
                 'discussion_id' => $d->discussion_id,
-                'title'         => $d->title,
-                'annotation'    => $d->annotation ? [
-                    'annotation_id'    => $d->annotation->annotation_id,
+                'title' => $d->title,
+                'annotation' => $d->annotation ? [
+                    'annotation_id' => $d->annotation->annotation_id,
                     'text_range_start' => $d->annotation->text_range_start,
-                    'text_range_end'   => $d->annotation->text_range_end,
+                    'text_range_end' => $d->annotation->text_range_end,
                 ] : null,
-                'created_by'    => $this->anonymization->reviewerArray($d->creator, $research, $viewer),
-                'created_at'    => $d->created_at,
-                'reply_count'   => $d->replies->count(),
+                'created_by' => $this->anonymization->reviewerArray($d->creator, $research, $viewer),
+                'created_at' => $d->created_at,
+                'reply_count' => $d->replies->count(),
             ];
         });
 
@@ -67,7 +68,7 @@ class ForumController extends Controller
         $viewer = JWTAuth::user();
 
         // Authors can only access after Interactive Phase (REQ-066)
-        if ($viewer->isAuthor() && !$research->isInteractive() && !$research->isAccepted()) {
+        if ($viewer->isAuthor() && !$research->isInteractive()) {
             return response()->json([
                 'message' => 'Forbidden. The Review Reports Forum is not accessible to authors until the Interactive Phase begins.',
             ], 403);
@@ -75,21 +76,21 @@ class ForumController extends Controller
 
         $discussions = ForumDiscussion::where('research_id', $research->research_id)
             ->where('discussion_type', 'review_report')
-            ->with(['creator', 'report', 'replies' => fn ($q) => $q->whereNull('deleted_at')])
+            ->with(['creator', 'report', 'replies' => fn($q) => $q->whereNull('deleted_at')])
             ->orderBy('created_at')
             ->paginate(15);
 
         $discussions->getCollection()->transform(function ($d) use ($research, $viewer) {
             return [
                 'discussion_id' => $d->discussion_id,
-                'title'         => $d->title,
-                'report'        => $d->report ? [
-                    'report_id'      => $d->report->report_id,
+                'title' => $d->title,
+                'report' => $d->report ? [
+                    'report_id' => $d->report->report_id,
                     'recommendation' => $d->report->recommendation,
                 ] : null,
-                'created_by'    => $this->anonymization->reviewerArray($d->creator, $research, $viewer),
-                'created_at'    => $d->created_at,
-                'reply_count'   => $d->replies->count(),
+                'created_by' => $this->anonymization->reviewerArray($d->creator, $research, $viewer),
+                'created_at' => $d->created_at,
+                'reply_count' => $d->replies->count(),
             ];
         });
 
@@ -107,7 +108,7 @@ class ForumController extends Controller
 
         // Author gate for review_report discussions
         if ($discussion->discussion_type === 'review_report' && $viewer->isAuthor()) {
-            if (!$research->isInteractive() && !$research->isAccepted()) {
+            if (!$research->isInteractive()) {
                 return response()->json([
                     'message' => 'Forbidden. This forum is not accessible until the Interactive Phase begins.',
                 ], 403);
@@ -123,12 +124,12 @@ class ForumController extends Controller
         $repliesData = $replies->map(function ($reply) use ($research, $viewer) {
             $isDeleted = $reply->deleted_at !== null;
             return [
-                'reply_id'   => $reply->reply_id,
-                'user'       => $isDeleted ? null : [
-                    'user_id'      => $reply->user->user_id,
+                'reply_id' => $reply->reply_id,
+                'user' => $isDeleted ? null : [
+                    'user_id' => $reply->user->user_id,
                     'display_name' => $this->anonymization->resolveDisplayName($reply->user, $research, $viewer),
                 ],
-                'content'    => $isDeleted ? null : $reply->content,
+                'content' => $isDeleted ? null : $reply->content,
                 'created_at' => $reply->created_at,
                 'deleted_at' => $reply->deleted_at,
             ];
@@ -136,13 +137,13 @@ class ForumController extends Controller
 
         return response()->json([
             'data' => [
-                'discussion_id'              => $discussion->discussion_id,
-                'discussion_type'            => $discussion->discussion_type,
-                'title'                      => $discussion->title,
-                'referenced_annotation_id'   => $discussion->referenced_annotation_id,
-                'referenced_report_id'       => $discussion->referenced_report_id,
-                'created_at'                 => $discussion->created_at,
-                'replies'                    => $repliesData,
+                'discussion_id' => $discussion->discussion_id,
+                'discussion_type' => $discussion->discussion_type,
+                'title' => $discussion->title,
+                'referenced_annotation_id' => $discussion->referenced_annotation_id,
+                'referenced_report_id' => $discussion->referenced_report_id,
+                'created_at' => $discussion->created_at,
+                'replies' => $repliesData,
             ],
         ]);
     }
@@ -159,7 +160,7 @@ class ForumController extends Controller
         // Authors cannot reply to review_report discussions before Interactive Phase
         if ($viewer = $user) {
             if ($discussion->discussion_type === 'review_report' && $viewer->isAuthor()) {
-                if (!$research->isInteractive() && !$research->isAccepted()) {
+                if (!$research->isInteractive()) {
                     return response()->json(['message' => 'Forbidden.'], 403);
                 }
             }
@@ -171,19 +172,19 @@ class ForumController extends Controller
 
         $reply = ForumReply::create([
             'discussion_id' => $discussion->discussion_id,
-            'user_id'       => $user->user_id,
-            'content'       => $data['content'],
-            'created_at'    => now(),
+            'user_id' => $user->user_id,
+            'content' => $data['content'],
+            'created_at' => now(),
         ]);
 
         return response()->json([
             'message' => 'Reply posted.',
-            'data'    => [
-                'reply_id'      => $reply->reply_id,
+            'data' => [
+                'reply_id' => $reply->reply_id,
                 'discussion_id' => $discussion->discussion_id,
-                'user_id'       => $user->user_id,
-                'content'       => $reply->content,
-                'created_at'    => $reply->created_at,
+                'user_id' => $user->user_id,
+                'content' => $reply->content,
+                'created_at' => $reply->created_at,
             ],
         ], 201);
     }
