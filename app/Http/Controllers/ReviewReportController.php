@@ -14,8 +14,7 @@ class ReviewReportController extends Controller
 {
     public function __construct(
         private readonly AnonymizationService $anonymization
-    ) {
-    }
+    ) {}
 
     // ── POST /api/v1/research/{research}/reports ────────────────────
     public function store(Request $request, ResearchSubmission $research): JsonResponse
@@ -23,7 +22,7 @@ class ReviewReportController extends Controller
         $user = JWTAuth::user();
 
         // Only during Independent Phase
-        if (!$research->isIndependent()) {
+        if (! $research->isIndependent()) {
             return response()->json([
                 'message' => 'Unprocessable. Review reports can only be submitted during the Independent Review Phase.',
             ], 422);
@@ -51,7 +50,7 @@ class ReviewReportController extends Controller
             'research_id' => $research->research_id,
             'discussion_type' => 'review_report',
             'referenced_report_id' => $report->report_id,
-            'title' => 'Review Report — ' . $this->anonymization->resolveDisplayName(
+            'title' => 'Review Report — '.$this->anonymization->resolveDisplayName(
                 $user,
                 $research,
                 $user
@@ -82,7 +81,7 @@ class ReviewReportController extends Controller
         $viewer = JWTAuth::user();
 
         // Authors can only see reports after Interactive Phase begins (REQ-056)
-        if ($viewer->isAuthor() && !$research->isInteractive()) {
+        if ($viewer->isAuthor() && ! $research->isInteractive()) {
             return response()->json([
                 'message' => 'Forbidden. Review reports are not visible to authors until the Interactive Phase begins.',
             ], 403);

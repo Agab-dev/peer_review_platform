@@ -25,11 +25,11 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         // Public
         Route::post('register', [AuthController::class, 'register']);
-        Route::post('login',    [AuthController::class, 'login']);
+        Route::post('login', [AuthController::class, 'login']);
 
         // Authenticated
         Route::middleware('jwt.auth')->group(function () {
-            Route::post('logout',          [AuthController::class, 'logout']);
+            Route::post('logout', [AuthController::class, 'logout']);
             Route::post('change-password', [AuthController::class, 'changePassword']);
         });
     });
@@ -37,7 +37,7 @@ Route::prefix('v1')->group(function () {
     // EIC creates reviewer and editor accounts
     Route::middleware(['jwt.auth', 'role:eic'])->group(function () {
         Route::post('reviewers', [UserController::class, 'storeReviewer']);
-        Route::post('editors',   [UserController::class, 'storeEditor']);
+        Route::post('editors', [UserController::class, 'storeEditor']);
     });
 
     // Reviewer and editor pool listings
@@ -119,15 +119,15 @@ Route::prefix('v1')->group(function () {
         // ── 7. FORUM DISCUSSIONS & REPLIES ────────────────────────
 
         Route::get('research/{research}/forums/annotations', [ForumController::class, 'listAnnotationDiscussions']);
-        Route::get('research/{research}/forums/reports',     [ForumController::class, 'listReportDiscussions']);
+        Route::get('research/{research}/forums/reports', [ForumController::class, 'listReportDiscussions']);
         Route::get('research/{research}/forums/{discussion}', [ForumController::class, 'show']);
 
-        Route::post('research/{research}/forums/{discussion}/replies',          [ForumController::class, 'storeReply']);
+        Route::post('research/{research}/forums/{discussion}/replies', [ForumController::class, 'storeReply']);
         Route::delete('research/{research}/forums/{discussion}/replies/{reply}', [ForumController::class, 'deleteReply']);
     });
 
     // ── 8. PUBLIC RESEARCH ACCESS (no authentication) ──────────────
 
-    Route::get('publications',           [PublicationController::class, 'index']);
+    Route::get('publications', [PublicationController::class, 'index']);
     Route::get('publications/{research}', [PublicationController::class, 'show']);
 });

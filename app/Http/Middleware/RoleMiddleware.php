@@ -16,7 +16,7 @@ class RoleMiddleware
     {
         $user = JWTAuth::parseToken()->authenticate();
 
-        if (!in_array($user->role, $roles)) {
+        if (! in_array($user->role, $roles)) {
             return response()->json(['message' => 'Forbidden. Insufficient role.'], 403);
         }
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DocumentVersion;
 use App\Models\ResearchSubmission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,14 +25,14 @@ class PublicationController extends Controller
         $results = $query->orderByDesc('accepted_at')->paginate(15);
 
         $results->getCollection()->transform(fn ($r) => [
-            'research_id'    => $r->research_id,
-            'title'          => $r->title,
+            'research_id' => $r->research_id,
+            'title' => $r->title,
             'research_field' => $r->research_field,
-            'author'         => [
-                'full_name'   => $r->author->full_name,
+            'author' => [
+                'full_name' => $r->author->full_name,
                 'institution' => $r->author->institution,
             ],
-            'accepted_at'    => $r->accepted_at,
+            'accepted_at' => $r->accepted_at,
         ]);
 
         return response()->json($results);
@@ -43,7 +42,7 @@ class PublicationController extends Controller
     public function show(ResearchSubmission $research): JsonResponse
     {
         // Return 404 if not accepted (REQ-088)
-        if (!$research->isAccepted()) {
+        if (! $research->isAccepted()) {
             return response()->json(['message' => 'Not found.'], 404);
         }
 
@@ -52,15 +51,15 @@ class PublicationController extends Controller
 
         return response()->json([
             'data' => [
-                'research_id'    => $research->research_id,
-                'title'          => $research->title,
+                'research_id' => $research->research_id,
+                'title' => $research->title,
                 'research_field' => $research->research_field,
-                'author'         => [
-                    'full_name'   => $research->author->full_name,
+                'author' => [
+                    'full_name' => $research->author->full_name,
                     'institution' => $research->author->institution,
                 ],
-                'html_content'   => $document?->html_ready ? $document->html_content : null,
-                'accepted_at'    => $research->accepted_at,
+                'html_content' => $document?->html_ready ? $document->html_content : null,
+                'accepted_at' => $research->accepted_at,
             ],
         ]);
     }

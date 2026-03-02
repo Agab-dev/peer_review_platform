@@ -50,6 +50,7 @@ class AnonymizationService
             if ($viewer->isAuthor() && $participant->isReviewer()) {
                 return 'Reviewer Note';
             }
+
             return $participant->full_name;
         }
 
@@ -61,6 +62,7 @@ class AnonymizationService
             if ($viewer->isReviewer() && $participant->isAuthor()) {
                 return 'Anonymous Author';
             }
+
             return $participant->full_name;
         }
 
@@ -73,7 +75,7 @@ class AnonymizationService
     public function reviewerArray(User $reviewer, ResearchSubmission $research, ?User $viewer): array
     {
         return [
-            'user_id'      => $reviewer->user_id,
+            'user_id' => $reviewer->user_id,
             'display_name' => $this->resolveDisplayName($reviewer, $research, $viewer),
         ];
     }
@@ -86,7 +88,7 @@ class AnonymizationService
     {
         $words = preg_split('/\s+/', trim($highlightedText));
         $first7 = array_slice($words, 0, 7);
-        $title  = implode(' ', $first7);
+        $title = implode(' ', $first7);
 
         if (count($words) > 7) {
             $title .= '...';

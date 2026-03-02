@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ConflictOfInterestDeclaration extends Model
 {
     protected $primaryKey = 'coi_id';
+
     public $timestamps = false;
 
     protected $fillable = [

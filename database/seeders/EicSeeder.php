@@ -13,9 +13,9 @@ class EicSeeder extends Seeder
         User::firstOrCreate(
             ['email' => 'eic@peerreview.edu'],
             [
-                'full_name'   => 'Editor in Chief',
-                'password'    => Hash::make('EicPassword123'),
-                'role'        => 'eic',
+                'full_name' => 'Editor in Chief',
+                'password' => Hash::make('EicPassword123'),
+                'role' => 'eic',
                 'institution' => 'University of Salahaddin',
             ]
         );

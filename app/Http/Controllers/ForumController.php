@@ -14,8 +14,7 @@ class ForumController extends Controller
 {
     public function __construct(
         private readonly AnonymizationService $anonymization
-    ) {
-    }
+    ) {}
 
     // ── GET /api/v1/research/{research}/forums/annotations ──────────
     public function listAnnotationDiscussions(Request $request, ResearchSubmission $research): JsonResponse
@@ -30,8 +29,8 @@ class ForumController extends Controller
 
         $query = ForumDiscussion::where('research_id', $research->research_id)
             ->where('discussion_type', 'annotation')
-            ->whereHas('annotation', fn($q) => $q->where('document_id', $documentId))
-            ->with(['creator', 'annotation', 'replies' => fn($q) => $q->whereNull('deleted_at')]);
+            ->whereHas('annotation', fn ($q) => $q->where('document_id', $documentId))
+            ->with(['creator', 'annotation', 'replies' => fn ($q) => $q->whereNull('deleted_at')]);
 
         $sort = $request->query('sort', 'chronological');
         if ($sort === 'document_order') {
@@ -68,7 +67,7 @@ class ForumController extends Controller
         $viewer = JWTAuth::user();
 
         // Authors can only access after Interactive Phase (REQ-066)
-        if ($viewer->isAuthor() && !$research->isInteractive()) {
+        if ($viewer->isAuthor() && ! $research->isInteractive()) {
             return response()->json([
                 'message' => 'Forbidden. The Review Reports Forum is not accessible to authors until the Interactive Phase begins.',
             ], 403);
@@ -76,7 +75,7 @@ class ForumController extends Controller
 
         $discussions = ForumDiscussion::where('research_id', $research->research_id)
             ->where('discussion_type', 'review_report')
-            ->with(['creator', 'report', 'replies' => fn($q) => $q->whereNull('deleted_at')])
+            ->with(['creator', 'report', 'replies' => fn ($q) => $q->whereNull('deleted_at')])
             ->orderBy('created_at')
             ->paginate(15);
 
@@ -108,7 +107,7 @@ class ForumController extends Controller
 
         // Author gate for review_report discussions
         if ($discussion->discussion_type === 'review_report' && $viewer->isAuthor()) {
-            if (!$research->isInteractive()) {
+            if (! $research->isInteractive()) {
                 return response()->json([
                     'message' => 'Forbidden. This forum is not accessible until the Interactive Phase begins.',
                 ], 403);
@@ -123,6 +122,7 @@ class ForumController extends Controller
 
         $repliesData = $replies->map(function ($reply) use ($research, $viewer) {
             $isDeleted = $reply->deleted_at !== null;
+
             return [
                 'reply_id' => $reply->reply_id,
                 'user' => $isDeleted ? null : [
@@ -160,7 +160,7 @@ class ForumController extends Controller
         // Authors cannot reply to review_report discussions before Interactive Phase
         if ($viewer = $user) {
             if ($discussion->discussion_type === 'review_report' && $viewer->isAuthor()) {
-                if (!$research->isInteractive()) {
+                if (! $research->isInteractive()) {
                     return response()->json(['message' => 'Forbidden.'], 403);
                 }
             }

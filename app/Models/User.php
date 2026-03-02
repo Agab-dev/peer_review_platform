@@ -29,7 +29,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected $casts = [
         'must_change_password' => 'boolean',
-        'deleted_at'           => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     // ── JWT ────────────────────────────────────────────────────────
@@ -46,10 +46,25 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // ── Role helpers ────────────────────────────────────────────────
-    public function isAuthor(): bool   { return $this->role === 'author'; }
-    public function isReviewer(): bool { return $this->role === 'reviewer'; }
-    public function isEditor(): bool   { return $this->role === 'editor'; }
-    public function isEic(): bool      { return $this->role === 'eic'; }
+    public function isAuthor(): bool
+    {
+        return $this->role === 'author';
+    }
+
+    public function isReviewer(): bool
+    {
+        return $this->role === 'reviewer';
+    }
+
+    public function isEditor(): bool
+    {
+        return $this->role === 'editor';
+    }
+
+    public function isEic(): bool
+    {
+        return $this->role === 'eic';
+    }
 
     // ── Relationships ────────────────────────────────────────────────
     public function researchSubmissions()

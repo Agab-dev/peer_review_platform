@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ForumReply extends Model
 {
     protected $primaryKey = 'reply_id';
+
     public $timestamps = false;
 
     protected $fillable = [

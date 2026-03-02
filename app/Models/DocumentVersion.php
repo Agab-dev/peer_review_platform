@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class DocumentVersion extends Model
 {
     protected $primaryKey = 'document_id';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -19,7 +20,7 @@ class DocumentVersion extends Model
     ];
 
     protected $casts = [
-        'html_ready'  => 'boolean',
+        'html_ready' => 'boolean',
         'uploaded_at' => 'datetime',
     ];
 

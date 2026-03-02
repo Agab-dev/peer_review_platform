@@ -10,6 +10,7 @@ class ResearchSubmission extends Model
     use HasFactory;
 
     protected $primaryKey = 'research_id';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -25,18 +26,41 @@ class ResearchSubmission extends Model
     ];
 
     protected $casts = [
-        'deadline'     => 'date',
+        'deadline' => 'date',
         'submitted_at' => 'datetime',
-        'accepted_at'  => 'datetime',
+        'accepted_at' => 'datetime',
     ];
 
     // ── Status / phase helpers ──────────────────────────────────────
-    public function isPending(): bool      { return $this->status === 'pending'; }
-    public function isAccepted(): bool     { return $this->status === 'accepted'; }
-    public function isRejected(): bool     { return $this->status === 'rejected'; }
-    public function isIndependent(): bool  { return $this->review_phase === 'independent'; }
-    public function isInteractive(): bool  { return $this->review_phase === 'interactive'; }
-    public function isFinalized(): bool    { return in_array($this->status, ['accepted', 'rejected']); }
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isAccepted(): bool
+    {
+        return $this->status === 'accepted';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
+
+    public function isIndependent(): bool
+    {
+        return $this->review_phase === 'independent';
+    }
+
+    public function isInteractive(): bool
+    {
+        return $this->review_phase === 'interactive';
+    }
+
+    public function isFinalized(): bool
+    {
+        return in_array($this->status, ['accepted', 'rejected']);
+    }
 
     // ── Relationships ────────────────────────────────────────────────
     public function author()

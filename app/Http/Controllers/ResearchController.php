@@ -23,35 +23,35 @@ class ResearchController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'title'          => 'required|string|max:500',
+            'title' => 'required|string|max:500',
             'research_field' => 'required|string|max:255',
-            'pdf_file'       => 'required|file|mimes:pdf|max:51200', // 50MB
+            'pdf_file' => 'required|file|mimes:pdf|max:51200', // 50MB
         ]);
 
         $user = JWTAuth::user();
         $file = $request->file('pdf_file');
 
         // Store PDF in private storage/app/pdfs
-        $filename = uniqid('pdf_', true) . '.pdf';
-        $path     = $file->storeAs('', $filename, 'pdfs');
+        $filename = uniqid('pdf_', true).'.pdf';
+        $path = $file->storeAs('', $filename, 'pdfs');
 
         // Create the research submission
         $research = ResearchSubmission::create([
-            'author_id'      => $user->user_id,
-            'title'          => $request->title,
+            'author_id' => $user->user_id,
+            'title' => $request->title,
             'research_field' => $request->research_field,
-            'status'         => 'pending',
-            'review_phase'   => null,
-            'submitted_at'   => now(),
+            'status' => 'pending',
+            'review_phase' => null,
+            'submitted_at' => now(),
         ]);
 
         // Create version 1
         $document = DocumentVersion::create([
-            'research_id'    => $research->research_id,
+            'research_id' => $research->research_id,
             'version_number' => 1,
-            'pdf_file_path'  => $filename,
-            'html_ready'     => false,
-            'uploaded_at'    => now(),
+            'pdf_file_path' => $filename,
+            'html_ready' => false,
+            'uploaded_at' => now(),
         ]);
 
         // Dispatch async conversion job
@@ -59,18 +59,18 @@ class ResearchController extends Controller
 
         return response()->json([
             'message' => 'Research submitted successfully.',
-            'data'    => [
-                'research_id'    => $research->research_id,
-                'title'          => $research->title,
+            'data' => [
+                'research_id' => $research->research_id,
+                'title' => $research->title,
                 'research_field' => $research->research_field,
-                'status'         => $research->status,
-                'review_phase'   => $research->review_phase,
-                'submitted_at'   => $research->submitted_at,
-                'document'       => [
-                    'document_id'    => $document->document_id,
+                'status' => $research->status,
+                'review_phase' => $research->review_phase,
+                'submitted_at' => $research->submitted_at,
+                'document' => [
+                    'document_id' => $document->document_id,
                     'version_number' => $document->version_number,
-                    'html_ready'     => $document->html_ready,
-                    'uploaded_at'    => $document->uploaded_at,
+                    'html_ready' => $document->html_ready,
+                    'uploaded_at' => $document->uploaded_at,
                 ],
             ],
         ], 201);
@@ -79,7 +79,7 @@ class ResearchController extends Controller
     // ── GET /api/v1/research ────────────────────────────────────────
     public function index(Request $request): JsonResponse
     {
-        $user  = JWTAuth::user();
+        $user = JWTAuth::user();
         $query = ResearchSubmission::query()->with('latestDocument');
 
         // Role-aware filtering
@@ -119,15 +119,16 @@ class ResearchController extends Controller
 
         $results->getCollection()->transform(function ($research) use ($primaryEditors) {
             $pe = $primaryEditors->get($research->research_id);
+
             return [
-                'research_id'    => $research->research_id,
-                'title'          => $research->title,
+                'research_id' => $research->research_id,
+                'title' => $research->title,
                 'research_field' => $research->research_field,
-                'status'         => $research->status,
-                'review_phase'   => $research->review_phase,
-                'submitted_at'   => $research->submitted_at,
+                'status' => $research->status,
+                'review_phase' => $research->review_phase,
+                'submitted_at' => $research->submitted_at,
                 'primary_editor' => $pe ? [
-                    'user_id'   => $pe->editor->user_id,
+                    'user_id' => $pe->editor->user_id,
                     'full_name' => $pe->editor->full_name,
                 ] : null,
             ];
@@ -155,8 +156,8 @@ class ResearchController extends Controller
 
         // Editors and EIC always see full names
         $editors = $research->activeEditorAssignments->map(fn ($a) => [
-            'user_id'    => $a->editor->user_id,
-            'full_name'  => $a->editor->full_name,
+            'user_id' => $a->editor->user_id,
+            'full_name' => $a->editor->full_name,
             'is_primary' => $a->is_primary,
         ]);
 
@@ -164,12 +165,12 @@ class ResearchController extends Controller
         $authorData = null;
         if ($viewer->isEic() || $viewer->isEditor() || $research->isAccepted()) {
             $authorData = [
-                'user_id'   => $research->author->user_id,
+                'user_id' => $research->author->user_id,
                 'full_name' => $research->author->full_name,
             ];
         } elseif ($viewer->isAuthor() && $viewer->user_id === $research->author_id) {
             $authorData = [
-                'user_id'   => $research->author->user_id,
+                'user_id' => $research->author->user_id,
                 'full_name' => $research->author->full_name,
             ];
         } elseif ($viewer->isReviewer()) {
@@ -183,23 +184,23 @@ class ResearchController extends Controller
 
         return response()->json([
             'data' => [
-                'research_id'         => $research->research_id,
-                'title'               => $research->title,
-                'research_field'      => $research->research_field,
-                'status'              => $research->status,
-                'review_phase'        => $research->review_phase,
+                'research_id' => $research->research_id,
+                'title' => $research->title,
+                'research_field' => $research->research_field,
+                'status' => $research->status,
+                'review_phase' => $research->review_phase,
                 'anonymization_model' => $research->anonymization_model,
-                'deadline'            => $research->deadline,
-                'submitted_at'        => $research->submitted_at,
-                'accepted_at'         => $research->accepted_at,
-                'author'              => $authorData,
-                'editors'             => $editors,
-                'reviewers'           => $reviewers,
-                'latest_document'     => $latest ? [
-                    'document_id'    => $latest->document_id,
+                'deadline' => $research->deadline,
+                'submitted_at' => $research->submitted_at,
+                'accepted_at' => $research->accepted_at,
+                'author' => $authorData,
+                'editors' => $editors,
+                'reviewers' => $reviewers,
+                'latest_document' => $latest ? [
+                    'document_id' => $latest->document_id,
                     'version_number' => $latest->version_number,
-                    'html_ready'     => $latest->html_ready,
-                    'uploaded_at'    => $latest->uploaded_at,
+                    'html_ready' => $latest->html_ready,
+                    'uploaded_at' => $latest->uploaded_at,
                 ] : null,
             ],
         ]);
@@ -213,7 +214,7 @@ class ResearchController extends Controller
         // Verify this user is the primary editor of this submission
         $primaryAssignment = $research->primaryEditorAssignment()->first();
 
-        if (!$primaryAssignment || $primaryAssignment->editor_id !== $viewer->user_id) {
+        if (! $primaryAssignment || $primaryAssignment->editor_id !== $viewer->user_id) {
             return response()->json(['message' => 'Forbidden. Only the primary handling editor may make this decision.'], 403);
         }
 
@@ -237,11 +238,11 @@ class ResearchController extends Controller
 
             return response()->json([
                 'message' => 'Research rejected permanently.',
-                'data'    => [
-                    'research_id'  => $research->research_id,
-                    'status'       => $research->status,
+                'data' => [
+                    'research_id' => $research->research_id,
+                    'status' => $research->status,
                     'review_phase' => $research->review_phase,
-                    'accepted_at'  => null,
+                    'accepted_at' => null,
                 ],
             ]);
         }
@@ -256,28 +257,28 @@ class ResearchController extends Controller
 
                 return response()->json([
                     'message' => 'Research accepted. Interactive Review Phase has begun.',
-                    'data'    => [
-                        'research_id'  => $research->research_id,
-                        'status'       => $research->status, // still 'pending'
+                    'data' => [
+                        'research_id' => $research->research_id,
+                        'status' => $research->status, // still 'pending'
                         'review_phase' => $research->review_phase,
-                        'accepted_at'  => null,
+                        'accepted_at' => null,
                     ],
                 ]);
             }
 
             // Accept during Interactive Phase → final publication decision
             if ($research->isInteractive()) {
-                $research->status      = 'accepted';
+                $research->status = 'accepted';
                 $research->accepted_at = now();
                 $research->save();
 
                 return response()->json([
                     'message' => 'Research accepted and published.',
-                    'data'    => [
-                        'research_id'  => $research->research_id,
-                        'status'       => $research->status,
+                    'data' => [
+                        'research_id' => $research->research_id,
+                        'status' => $research->status,
                         'review_phase' => $research->review_phase,
-                        'accepted_at'  => $research->accepted_at,
+                        'accepted_at' => $research->accepted_at,
                     ],
                 ]);
             }

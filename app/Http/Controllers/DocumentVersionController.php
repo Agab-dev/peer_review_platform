@@ -21,11 +21,11 @@ class DocumentVersionController extends Controller
         $latestVersionNumber = $versions->first()?->version_number;
 
         $data = $versions->map(fn ($v) => [
-            'document_id'    => $v->document_id,
+            'document_id' => $v->document_id,
             'version_number' => $v->version_number,
-            'html_ready'     => $v->html_ready,
-            'uploaded_at'    => $v->uploaded_at,
-            'is_latest'      => $v->version_number === $latestVersionNumber,
+            'html_ready' => $v->html_ready,
+            'uploaded_at' => $v->uploaded_at,
+            'is_latest' => $v->version_number === $latestVersionNumber,
         ]);
 
         return response()->json(['data' => $data]);
@@ -46,15 +46,15 @@ class DocumentVersionController extends Controller
 
         return response()->json([
             'data' => [
-                'document_id'       => $document->document_id,
-                'version_number'    => $document->version_number,
-                'html_content'      => $document->html_ready ? $document->html_content : null,
-                'html_ready'        => $document->html_ready,
-                'is_latest'         => $isLatest,
+                'document_id' => $document->document_id,
+                'version_number' => $document->version_number,
+                'html_content' => $document->html_ready ? $document->html_content : null,
+                'html_ready' => $document->html_ready,
+                'is_latest' => $isLatest,
                 'latest_document_id' => $isLatest ? null : DocumentVersion::where('research_id', $research->research_id)
                     ->orderByDesc('version_number')
                     ->value('document_id'),
-                'uploaded_at'       => $document->uploaded_at,
+                'uploaded_at' => $document->uploaded_at,
             ],
         ]);
     }
@@ -70,7 +70,7 @@ class DocumentVersionController extends Controller
         }
 
         // Only during Interactive Phase
-        if (!$research->isInteractive()) {
+        if (! $research->isInteractive()) {
             return response()->json([
                 'message' => 'Unprocessable. Revised documents can only be uploaded during the Interactive Phase.',
             ], 422);
@@ -80,31 +80,31 @@ class DocumentVersionController extends Controller
             'pdf_file' => 'required|file|mimes:pdf|max:51200',
         ]);
 
-        $file     = $request->file('pdf_file');
-        $filename = uniqid('pdf_', true) . '.pdf';
+        $file = $request->file('pdf_file');
+        $filename = uniqid('pdf_', true).'.pdf';
         $file->storeAs('', $filename, 'pdfs');
 
         $nextVersion = DocumentVersion::where('research_id', $research->research_id)->max('version_number') + 1;
 
         $document = DocumentVersion::create([
-            'research_id'    => $research->research_id,
+            'research_id' => $research->research_id,
             'version_number' => $nextVersion,
-            'pdf_file_path'  => $filename,
-            'html_ready'     => false,
-            'uploaded_at'    => now(),
+            'pdf_file_path' => $filename,
+            'html_ready' => false,
+            'uploaded_at' => now(),
         ]);
 
         ConvertPdfToHtml::dispatch($document->document_id);
 
         return response()->json([
             'message' => 'Revised document uploaded successfully.',
-            'data'    => [
-                'document_id'    => $document->document_id,
-                'research_id'    => $research->research_id,
+            'data' => [
+                'document_id' => $document->document_id,
+                'research_id' => $research->research_id,
                 'version_number' => $document->version_number,
-                'html_ready'     => $document->html_ready,
-                'uploaded_at'    => $document->uploaded_at,
-                'is_latest'      => true,
+                'html_ready' => $document->html_ready,
+                'uploaded_at' => $document->uploaded_at,
+                'is_latest' => true,
             ],
         ], 201);
     }

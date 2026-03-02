@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Annotation extends Model
 {
     protected $primaryKey = 'annotation_id';
+
     public $timestamps = false;
 
     protected $fillable = [

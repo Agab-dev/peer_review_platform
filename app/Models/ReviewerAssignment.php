@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReviewerAssignment extends Model
 {
     protected $primaryKey = 'assignment_id';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -18,7 +19,7 @@ class ReviewerAssignment extends Model
 
     protected $casts = [
         'assigned_at' => 'datetime',
-        'deleted_at'  => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public function research()

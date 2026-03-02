@@ -27,14 +27,14 @@ class AnnotationController extends Controller
         }
 
         // Only during Interactive Phase
-        if (!$research->isInteractive()) {
+        if (! $research->isInteractive()) {
             return response()->json([
                 'message' => 'Unprocessable. Annotations can only be created during the Interactive Review Phase.',
             ], 422);
         }
 
         // html_ready must be true before annotations can be made
-        if (!$document->html_ready) {
+        if (! $document->html_ready) {
             return response()->json([
                 'message' => 'Unprocessable. Document is still being processed.',
             ], 422);
@@ -42,8 +42,8 @@ class AnnotationController extends Controller
 
         $data = $request->validate([
             'text_range_start' => 'required|integer|min:0',
-            'text_range_end'   => 'required|integer|gt:text_range_start',
-            'comment'          => 'required|string',
+            'text_range_end' => 'required|integer|gt:text_range_start',
+            'comment' => 'required|string',
         ]);
 
         // Check for duplicate annotation by same reviewer on same range (REQ-074)
@@ -60,12 +60,12 @@ class AnnotationController extends Controller
         }
 
         $annotation = Annotation::create([
-            'document_id'      => $document->document_id,
-            'reviewer_id'      => $user->user_id,
+            'document_id' => $document->document_id,
+            'reviewer_id' => $user->user_id,
             'text_range_start' => $data['text_range_start'],
-            'text_range_end'   => $data['text_range_end'],
-            'comment'          => $data['comment'],
-            'created_at'       => now(),
+            'text_range_end' => $data['text_range_end'],
+            'comment' => $data['comment'],
+            'created_at' => now(),
         ]);
 
         // Auto-generate thread title from first 7 words of comment (REQ-071)
@@ -73,27 +73,27 @@ class AnnotationController extends Controller
 
         // Auto-create Annotations Forum thread (REQ-071)
         $discussion = ForumDiscussion::create([
-            'research_id'               => $research->research_id,
-            'discussion_type'           => 'annotation',
-            'referenced_annotation_id'  => $annotation->annotation_id,
-            'title'                     => $title,
-            'created_at'                => now(),
-            'created_by'                => $user->user_id,
+            'research_id' => $research->research_id,
+            'discussion_type' => 'annotation',
+            'referenced_annotation_id' => $annotation->annotation_id,
+            'title' => $title,
+            'created_at' => now(),
+            'created_by' => $user->user_id,
         ]);
 
         return response()->json([
             'message' => 'Annotation created.',
-            'data'    => [
-                'annotation_id'    => $annotation->annotation_id,
-                'document_id'      => $document->document_id,
-                'reviewer_id'      => $user->user_id,
+            'data' => [
+                'annotation_id' => $annotation->annotation_id,
+                'document_id' => $document->document_id,
+                'reviewer_id' => $user->user_id,
                 'text_range_start' => $annotation->text_range_start,
-                'text_range_end'   => $annotation->text_range_end,
-                'comment'          => $annotation->comment,
-                'created_at'       => $annotation->created_at,
-                'discussion'       => [
+                'text_range_end' => $annotation->text_range_end,
+                'comment' => $annotation->comment,
+                'created_at' => $annotation->created_at,
+                'discussion' => [
                     'discussion_id' => $discussion->discussion_id,
-                    'title'         => $discussion->title,
+                    'title' => $discussion->title,
                 ],
             ],
         ], 201);
@@ -123,13 +123,13 @@ class AnnotationController extends Controller
 
         $data = $annotations->map(function ($annotation) use ($research, $viewer) {
             return [
-                'annotation_id'    => $annotation->annotation_id,
+                'annotation_id' => $annotation->annotation_id,
                 'text_range_start' => $annotation->text_range_start,
-                'text_range_end'   => $annotation->text_range_end,
-                'comment'          => $annotation->comment,
-                'reviewer'         => $this->anonymization->reviewerArray($annotation->reviewer, $research, $viewer),
-                'created_at'       => $annotation->created_at,
-                'discussion_id'    => $annotation->forumDiscussion?->discussion_id,
+                'text_range_end' => $annotation->text_range_end,
+                'comment' => $annotation->comment,
+                'reviewer' => $this->anonymization->reviewerArray($annotation->reviewer, $research, $viewer),
+                'created_at' => $annotation->created_at,
+                'discussion_id' => $annotation->forumDiscussion?->discussion_id,
             ];
         });
 

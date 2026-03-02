@@ -15,7 +15,8 @@ class ConvertPdfToHtml implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -26,21 +27,23 @@ class ConvertPdfToHtml implements ShouldQueue
     {
         $document = DocumentVersion::find($this->documentId);
 
-        if (!$document) {
+        if (! $document) {
             Log::error("ConvertPdfToHtml: DocumentVersion {$this->documentId} not found.");
+
             return;
         }
 
-        $pdfPath  = Storage::disk('pdfs')->path($document->pdf_file_path);
-        $htmlDir  = storage_path('app/html');
-        $htmlBase = $htmlDir . '/' . pathinfo($document->pdf_file_path, PATHINFO_FILENAME);
+        $pdfPath = Storage::disk('pdfs')->path($document->pdf_file_path);
+        $htmlDir = storage_path('app/html');
+        $htmlBase = $htmlDir.'/'.pathinfo($document->pdf_file_path, PATHINFO_FILENAME);
 
-        if (!file_exists($pdfPath)) {
+        if (! file_exists($pdfPath)) {
             Log::error("ConvertPdfToHtml: PDF not found at {$pdfPath}");
+
             return;
         }
 
-        if (!is_dir($htmlDir)) {
+        if (! is_dir($htmlDir)) {
             mkdir($htmlDir, 0755, true);
         }
 
@@ -52,11 +55,12 @@ class ConvertPdfToHtml implements ShouldQueue
             escapeshellarg($htmlBase)
         );
 
-        $output     = shell_exec($command);
-        $htmlFile   = $htmlBase . '.html';
+        $output = shell_exec($command);
+        $htmlFile = $htmlBase.'.html';
 
-        if (!file_exists($htmlFile)) {
+        if (! file_exists($htmlFile)) {
             Log::error("ConvertPdfToHtml: pdftohtml failed for document {$this->documentId}. Output: {$output}");
+
             return;
         }
 
@@ -67,7 +71,7 @@ class ConvertPdfToHtml implements ShouldQueue
 
         // Store HTML and mark as ready
         $document->html_content = $htmlContent;
-        $document->html_ready   = true;
+        $document->html_ready = true;
         $document->save();
 
         Log::info("ConvertPdfToHtml: Document {$this->documentId} converted successfully.");
@@ -75,7 +79,7 @@ class ConvertPdfToHtml implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("ConvertPdfToHtml job permanently failed for document {$this->documentId}: " . $exception->getMessage());
+        Log::error("ConvertPdfToHtml job permanently failed for document {$this->documentId}: ".$exception->getMessage());
 
         // html_ready stays false — frontend will keep waiting / show an error state
     }

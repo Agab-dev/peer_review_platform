@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ForumDiscussion extends Model
 {
     protected $primaryKey = 'discussion_id';
+
     public $timestamps = false;
 
     protected $fillable = [
